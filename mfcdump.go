@@ -12,6 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"os"
 	"strings"
 )
@@ -54,25 +55,25 @@ func NewMFCDump(input []byte) (MFCDump, error) {
 // XXX: len(16)
 func ManufacturerBlock(input []byte) string {
 	var (
-		uid    []byte
-		uidlen uint
-		mdoff  uint
+		uid []byte
+		//uidlen uint
+		mdoff uint
 	)
 	switch {
 	case input[0] == CT && input[5] == CT:
 		uid = []byte{input[1], input[2], input[3], input[6], input[7], input[8], input[10], input[11], input[12], input[13]}
-		uidlen = 10
+		//uidlen = 10
 		mdoff = 15
 	case input[0] == CT:
 		uid = []byte{input[1], input[2], input[3], input[5], input[6], input[7], input[8]}
-		uidlen = 7
+		//uidlen = 7
 		mdoff = 10
 	default:
 		uid = []byte{input[0], input[1], input[2], input[3]}
-		uidlen = 4
+		//uidlen = 4
 		mdoff = 5
 	}
-	return fmt.Sprintf("  UID (%2d bytes): %s    Manufacturer Data: %s", uidlen, HexBytes(uid, HexSeparator), HexBytes(input[mdoff:], HexSeparator))
+	return fmt.Sprintf("  UID: %s (%s)    Manufacturer Data: %s", big.NewInt(0).SetBytes(uid), HexBytes(uid, HexSeparator), HexBytes(input[mdoff:], HexSeparator))
 }
 
 // XXX: len(16)
