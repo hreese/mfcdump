@@ -7,6 +7,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha1"
 	"encoding/hex"
 	"errors"
 	"flag"
@@ -19,7 +20,7 @@ import (
 
 const (
 	CT           = 0x88
-	SectorHeader = "----- [ Sector %2d ] ----------------------------------------------------------\n"
+	SectorHeader = "----- [ Sector %2d ] ------ [ %X ] ------\n"
 )
 
 var (
@@ -84,8 +85,8 @@ func (m *MFCDump) Dump() {
 	)
 	hexdump := strings.Split(hex.Dump(m.raw), "\n")
 	// parse block 0
-	fmt.Printf(SectorHeader, 0)
 	block = m.raw[0:64]
+	fmt.Printf(SectorHeader, 0, sha1.Sum(block))
 	for i := 0; i < 4; i++ {
 		fmt.Println(hexdump[i])
 	}
@@ -103,7 +104,7 @@ func (m *MFCDump) Dump() {
 		if SkipEmpty && (bytes.Compare(block[:3*16], ZeroBlock) == 0 || bytes.Compare(block[:3*16], FullBlock) == 0) {
 			continue
 		}
-		fmt.Printf(SectorHeader, blockIndex)
+		fmt.Printf(SectorHeader, blockIndex, sha1.Sum(block))
 		for i := 0; i < 4; i++ {
 			fmt.Println(hexdump[i+blockIndex*4])
 		}
