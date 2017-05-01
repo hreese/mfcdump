@@ -19,7 +19,7 @@ import (
 
 const (
 	CT           = 0x88
-	SectorHeader = "---------- [ Sector %2d ] ----------\n"
+	SectorHeader = "----- [ Sector %2d ] ----------------------------------------------------------\n"
 )
 
 var (
@@ -33,14 +33,6 @@ type MFCDump struct {
 	raw []byte
 }
 
-func HexBytes(input []byte, delim string) string {
-	hexbytes := make([]string, len(input))
-	for idx, b := range input {
-		hexbytes[idx] = fmt.Sprintf("%02x", b)
-	}
-	return strings.Join(hexbytes, delim)
-}
-
 func NewMFCDump(input []byte) (MFCDump, error) {
 	// check length
 	switch {
@@ -52,8 +44,7 @@ func NewMFCDump(input []byte) (MFCDump, error) {
 	return MFCDump{raw: input[:]}, nil
 }
 
-// XXX: len(16)
-func ManufacturerBlock(input []byte) string {
+func ManufacturerBlock(input [16]byte) string {
 	var (
 		uid []byte
 		//uidlen uint
@@ -73,23 +64,23 @@ func ManufacturerBlock(input []byte) string {
 		//uidlen = 4
 		mdoff = 5
 	}
-	return fmt.Sprintf("  UID: %s (%s)    Manufacturer Data: %s", big.NewInt(0).SetBytes(uid), HexBytes(uid, HexSeparator), HexBytes(input[mdoff:], HexSeparator))
+	return fmt.Sprintf("  UID: %s (% x)    Manufacturer Data: % x", big.NewInt(0).SetBytes(uid), uid, input[mdoff:])
 }
 
-// XXX: len(16)
-func SectorTrailer(input []byte) string {
+func SectorTrailer(input [16]byte) string {
 	var (
-		keyA   = input[:6]
-		keyB   = input[10:]
-		access = input[6:10]
+		keyA = input[:6]
+		keyB = input[10:]
+		//access = input[6:10] // don't care at the moment
 	)
-	// yes, I currently do not care for access bits :-)
-	return fmt.Sprintf("  Key A: %s    Key B: %s    Access bits: %s", HexBytes(keyA, HexSeparator), HexBytes(keyB, HexSeparator), HexBytes(access, HexSeparator))
+	return fmt.Sprintf("  Key A: % x\n  Key B: % x", keyA, keyB)
+
 }
 
 func (m *MFCDump) Dump() {
 	var (
-		block []byte
+		block   []byte
+		mfb, st [16]byte
 	)
 	hexdump := strings.Split(hex.Dump(m.raw), "\n")
 	// parse block 0
@@ -99,9 +90,11 @@ func (m *MFCDump) Dump() {
 		fmt.Println(hexdump[i])
 	}
 	fmt.Println()
-	fmt.Println(ManufacturerBlock(block[0:16]))
+	copy(mfb[:], block[0:16])
+	fmt.Println(ManufacturerBlock(mfb))
 	fmt.Println()
-	fmt.Println(SectorTrailer(block[3*16 : 4*16]))
+	copy(st[:], block[3*16:4*16])
+	fmt.Println(SectorTrailer(st))
 	fmt.Println()
 
 	// iterate over all blocks
@@ -115,7 +108,8 @@ func (m *MFCDump) Dump() {
 			fmt.Println(hexdump[i+blockIndex*4])
 		}
 		fmt.Println()
-		fmt.Println(SectorTrailer(block[3*16 : 4*16]))
+		copy(st[:], block[3*16:4*16])
+		fmt.Println(SectorTrailer(st))
 		fmt.Println()
 	}
 }
