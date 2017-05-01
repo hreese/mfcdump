@@ -7,7 +7,8 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha1"
+	"crypto/md5"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"flag"
@@ -20,7 +21,7 @@ import (
 
 const (
 	CT           = 0x88
-	SectorHeader = "----- [ Sector %2d ] ------ [ %X ] ------\n"
+	SectorHeader = "- [ Sector %2d ] - [ %s ] -\n"
 )
 
 var (
@@ -78,15 +79,35 @@ func SectorTrailer(input [16]byte) string {
 
 }
 
+func SectorHeading(input [64]byte, number int, isZero bool) string {
+	var (
+		checksums []string
+		block     = input[:]
+	)
+
+	// checksum sector minus manufacturer block and trailer
+	if isZero {
+		csum := md5.Sum(block[16:48])
+		checksums = append(checksums, base64.StdEncoding.EncodeToString(csum[:]))
+	}
+	// checksum sector minus trailer
+	csum := md5.Sum(block[0:48])
+	checksums = append(checksums, base64.StdEncoding.EncodeToString(csum[:]))
+	// checksum complete sector
+	csum = md5.Sum(block)
+	checksums = append(checksums, base64.StdEncoding.EncodeToString(csum[:]))
+	return fmt.Sprintf(SectorHeader, number, strings.Join(checksums, " "))
+}
+
 func (m *MFCDump) Dump() {
 	var (
-		block   []byte
+		block   [64]byte
 		mfb, st [16]byte
 	)
 	hexdump := strings.Split(hex.Dump(m.raw), "\n")
 	// parse block 0
-	block = m.raw[0:64]
-	fmt.Printf(SectorHeader, 0, sha1.Sum(block))
+	copy(block[:], m.raw[0:64])
+	fmt.Println(SectorHeading(block, 0, true))
 	for i := 0; i < 4; i++ {
 		fmt.Println(hexdump[i])
 	}
@@ -100,11 +121,11 @@ func (m *MFCDump) Dump() {
 
 	// iterate over all blocks
 	for blockIndex := 1; blockIndex < 16; blockIndex++ {
-		block = m.raw[blockIndex*64 : (blockIndex+1)*64]
+		copy(block[:], m.raw[blockIndex*64:(blockIndex+1)*64])
 		if SkipEmpty && (bytes.Compare(block[:3*16], ZeroBlock) == 0 || bytes.Compare(block[:3*16], FullBlock) == 0) {
 			continue
 		}
-		fmt.Printf(SectorHeader, blockIndex, sha1.Sum(block))
+		fmt.Println(SectorHeading(block, blockIndex, false))
 		for i := 0; i < 4; i++ {
 			fmt.Println(hexdump[i+blockIndex*4])
 		}
