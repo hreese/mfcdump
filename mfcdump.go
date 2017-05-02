@@ -108,7 +108,7 @@ func (m *MFCDump) Dump() {
 	// parse block 0
 	copy(block[:], m.raw[0:64])
 	fmt.Println(SectorHeading(block, 0, true))
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 3; i++ {
 		fmt.Println(hexdump[i])
 	}
 	fmt.Println()
@@ -126,7 +126,7 @@ func (m *MFCDump) Dump() {
 			continue
 		}
 		fmt.Println(SectorHeading(block, blockIndex, false))
-		for i := 0; i < 4; i++ {
+		for i := 0; i < 3; i++ {
 			fmt.Println(hexdump[i+blockIndex*4])
 		}
 		fmt.Println()
