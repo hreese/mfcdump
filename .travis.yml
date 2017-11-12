@@ -5,22 +5,23 @@ before_install:
     - sudo apt-get -qq update
     - sudo apt-get install -y genisoimage
 script:
+    # this is pretty horrible on many levels, but I needed this to done quickly
     - GOOS=linux GOARCH=386 go build -ldflags "-s -w" github.com/hreese/mfcdump
-    - tar cjf "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
+    - tar cjf "mfcdump-linux-386-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
     - GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" github.com/hreese/mfcdump
-    - tar cjf "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
+    - tar cjf "mfcdump-linux-amd64-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
     - GOOS=linux GOARCH=arm go build -ldflags "-s -w" github.com/hreese/mfcdump
-    - tar cjf "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
+    - tar cjf "mfcdump-linux-arm-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
     - GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" github.com/hreese/mfcdump
-    - tar cjf "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
+    - tar cjf "mfcdump-linux-arm64-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
     - GOOS=darwin GOARCH=386 go build -ldflags "-s -w" github.com/hreese/mfcdump
-    - genisoimage -V mfcdump -D -R -apple -no-pad -o "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.dmg" mfcdump README.md LICENSE
+    - genisoimage -V mfcdump -D -R -apple -no-pad -o "mfcdump-darwin-386-$TRAVIS_TAG.dmg" mfcdump README.md LICENSE
     - GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" github.com/hreese/mfcdump
-    - genisoimage -V mfcdump -D -R -apple -no-pad -o "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.dmg" mfcdump README.md LICENSE
+    - genisoimage -V mfcdump -D -R -apple -no-pad -o "mfcdump-darwin-amd64-$TRAVIS_TAG.dmg" mfcdump README.md LICENSE
     - GOOS=windows GOARCH=386 go build -ldflags "-s -w" github.com/hreese/mfcdump
-    - zip -9 "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.zip" mfcdump.exe README.md LICENSE
+    - zip -9 "mfcdump-windows-386-$TRAVIS_TAG.zip" mfcdump.exe README.md LICENSE
     - GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" github.com/hreese/mfcdump
-    - zip -9 "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.zip" mfcdump.exe README.md LICENSE
+    - zip -9 "mfcdump-windows-amd64-$TRAVIS_TAG.zip" mfcdump.exe README.md LICENSE
 deploy:
   provider: releases
   api_key:
