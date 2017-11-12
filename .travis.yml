@@ -1,0 +1,40 @@
+language: go
+go:
+    - '1.9'
+before_install:
+    - sudo apt-get -qq update
+    - sudo apt-get install -y genisoimage
+script:
+    - GOOS=linux GOARCH=386 go build -ldflags "-s -w" github.com/hreese/mfcdump
+    - tar cjf "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
+    - GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" github.com/hreese/mfcdump
+    - tar cjf "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
+    - GOOS=linux GOARCH=arm go build -ldflags "-s -w" github.com/hreese/mfcdump
+    - tar cjf "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
+    - GOOS=linux GOARCH=arm64 go build -ldflags "-s -w" github.com/hreese/mfcdump
+    - tar cjf "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.tar.bz2" mfcdump README.md LICENSE
+    - GOOS=darwin GOARCH=386 go build -ldflags "-s -w" github.com/hreese/mfcdump
+    - genisoimage -V mfcdump -D -R -apple -no-pad -o "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.dmg" mfcdump README.md LICENSE
+    - GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" github.com/hreese/mfcdump
+    - genisoimage -V mfcdump -D -R -apple -no-pad -o "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.dmg" mfcdump README.md LICENSE
+    - GOOS=windows GOARCH=386 go build -ldflags "-s -w" github.com/hreese/mfcdump
+    - zip -9 "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.zip" mfcdump.exe README.md LICENSE
+    - GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" github.com/hreese/mfcdump
+    - zip -9 "mfcdump-$GOOS-$GOARCH-$TRAVIS_TAG.zip" mfcdump.exe README.md LICENSE
+deploy:
+  provider: releases
+  api_key:
+    secure: fhr+YZRGmmO8+3lwEglJOlvcfDVVz3oMpZ5HgrtQquK01Q4GLcp/IcTyhkG3MHY9hdbAeb0P5ovOw9VLocgDcV+r/eukbIt8c90tLGsUR820aKI6w/Ll2ThbtZ4baSRXni2RccpntC1R6+/Yh2OIZRYwVnpjIR9qBh9jmbUmen4anU0H+TJzuLpx9mONAzOemqTSl0m4ES+hSXNhKnURH/NYp+J9JRpVNMSFp51DZmsFsmIk576/JY6IWHtln3CCnC7EsxgMkOrvnuGh6wOnOaWAD/oB5zP9QQ9RryCdfYzfGA9zTu+Y83UNvqOFBE4qbR8dSSSGsbY9hcCe2E4LZzSj9vahE2dxlZWHWVtXMEIj0J4AuE7sov2TKeAHCXYydi59e2fNK96Eyf1sh8s8pEUUIRCUOc3/xRYeah57saRXM2y3PBrXMXkO0H+HWPuMT/rkHF9je5+K+bkATisuVdbQpz/8E0Z4XP6D5uMmlIWYvP0s6zqueUUDbiyDa8RmGCUhOXYIGGJKdujC0CxAFNkHgq7suj50w0qaEQhl11mt6J5vdYMfhJkwYryII9fn3ZMnbgRbB9+vtxNX2Br62l6uH0qIfaPeMoMoQnmPmzfku0iJg2fPFLP3p3tbYpfZOeIGoFyYGa4AT+WMXJjJt0Ybdy+b/iP8zHplYoI7urQ=
+  skip_cleanup: true
+  file:
+    - "mfcdump-linux-386-$TRAVIS_TAG.tar.bz2"
+    - "mfcdump-linux-amd64-$TRAVIS_TAG.tar.bz2"
+    - "mfcdump-linux-arm-$TRAVIS_TAG.tar.bz2"
+    - "mfcdump-linux-arm64-$TRAVIS_TAG.tar.bz2"
+    - "mfcdump-darwin-386-$TRAVIS_TAG.dmg"
+    - "mfcdump-darwin-amd64-$TRAVIS_TAG.dmg"
+    - "mfcdump-windows-386-$TRAVIS_TAG.zip"
+    - "mfcdump-windows-amd64-$TRAVIS_TAG.zip"
+  on:
+    tags: true
+    repo: hreese/mfcdump
